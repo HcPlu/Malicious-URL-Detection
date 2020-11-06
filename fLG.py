@@ -31,11 +31,6 @@ def get_feature1(data):
     datas = vectorizer.fit_transform(data)
 
     return datas
-def get_feature2(data):
-
-    datas = vectorizer.transform(data)
-    print(datas)
-    return datas
 
 
 def train(model_name):
@@ -48,8 +43,8 @@ def train(model_name):
     datas = get_feature1(data)
     print(datas.shape)
 
-    train_data, test_data,train_label, test_label= train_test_split(datas, labels, test_size=20, random_state=42)
-    LR = LogisticRegression()
+    train_data, test_data,train_label, test_label= train_test_split(datas, labels, test_size=5000, random_state=7)
+    LR = LogisticRegression(class_weight={1: 2 * 40000 / 100000, 0: 1.0}, C=1.2, penalty='l2')
 
     # Train
     LR.fit(train_data, train_label)

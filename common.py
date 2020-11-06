@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 import torch
+import re
 import joblib
 from numpy import array
 
@@ -34,7 +35,7 @@ def get_feature1(data,vectorizer):
     datas = vectorizer.fit_transform(data)
     return datas
 
-def get_datas(vectorizer):
+def get_train_datas(vectorizer):
     bdata,blabel= get_data("data/badqueries.txt",0,23333)
     gdata,glabel = get_data("data/goodqueries.txt",1,88888)
     # datas = bdata+gdata
@@ -95,7 +96,79 @@ def load_LGmodel(model_name,vectorizer_name):
 def load_model(path):
     pass
 
+def extf(data, tmpf, pattern_list, weigh):
+    for x in pattern_list:
+        # print(x);
+        aaa = len(re.findall(x, data))
+        lll = np.log(1.0 + aaa)
+        tmpf.append(lll * weigh)
 
+
+def iextf(data, tmpf, pattern_list, weigh):
+    for x in pattern_list:
+        # print(x);
+        aaa = len(re.findall(x, data, re.IGNORECASE))
+        lll = np.log(1.0 + aaa)
+        tmpf.append(lll * weigh)
+
+def get_feature(datas):
+    f0 = []
+    for data in datas:
+        tmpf = []
+        tmpf.append(len(data))
+        if re.search('(http://)|(https://)', data, re.IGNORECASE):
+            tmpf.append(1)
+        else:
+            tmpf.append(0)
+        extf(data, tmpf, ["test"], 0.0001)
+
+        extf(data, tmpf, ["<", ">", "[<>]", "\"", "\'", "[{}]", "{", "}", "\(\)", "\(", "\)"], 1)
+        tmpf.append(int(len(re.findall("[<]", data)) == len(re.findall("[>]", data))))
+        tmpf.append(int(len(re.findall("[\']", data)) % 2 == 0))
+        tmpf.append(int(len(re.findall("[\"]", data)) % 2 == 0))
+        tmpf.append(int(len(re.findall("[{]", data)) == len(re.findall("[|]", data))))
+        tmpf.append(int(len(re.findall("\(", data)) == len(re.findall("\)", data))))
+        extf(data, tmpf, ["\$", "\.", "=", "|", "&", ";", "\?", "%", "#", "\[", "\]", "/"], 1)
+        iextf(data, tmpf, ["\$", "\.", "=", "|", "&", ";", "\?", "%", "#", "\[", "\]", "/"], 1)
+
+        extf(data, tmpf, ["..", "../"], 1)
+        iextf(data, tmpf, ["..", "../"], 1)
+
+        extf(data, tmpf, ["document", "eval", "phpinfo"], 1)
+        iextf(data, tmpf, ["document", "eval", "phpinfo"], 1)
+
+        extf(data, tmpf, ["script"], 2)
+        iextf(data, tmpf, ["script"], 2)
+
+        extf(data, tmpf, ["<script>"], 3)
+        iextf(data, tmpf, ["<script>"], 3)
+        extf(data, tmpf, ["</script>"], 3)
+        iextf(data, tmpf, ["</script>"], 3)
+
+        extf(data, tmpf, ["getElement", "alert", "javascript", "onerror", "onload"], 3)
+        iextf(data, tmpf, ["getElement", "alert", "javascript", "onerror", "onload"], 3)
+
+        extf(data, tmpf, ["on", "src", "src=", "exit"], 1)
+        iextf(data, tmpf, ["on", "src", "src=", "exit"], 1)
+
+        extf(data, tmpf, ["print", "assert", "preg_replace", "cookie", "exe", "/etc", "sql", "admin", "manage", "root"],
+             1)
+        iextf(data, tmpf,
+              ["print", "assert", "preg_replace", "cookie", "exe", "/etc", "sql", "admin", "manage", "root"], 1)
+
+        extf(data, tmpf, ["pl", "dll", "jsp", "asp", "php"], 1)
+        iextf(data, tmpf, ["pl", "dll", "jsp", "asp", "php"], 1)
+
+        extf(data, tmpf,
+             ["/\.\./", "/\./", "select", "create", "update", "set-cookie", "password", "passwd", "pass", "<\[a-zA-Z]"],
+             1)
+        iextf(data, tmpf, ["/\.\./", "/\./", "select", "create", "update", "set-cookie", "password", "passwd", "pass",
+                           "<\[a-zA-Z]"], 1)
+
+        f0.append(tmpf)
+    # feature = np.reshape(url_len + url_count + evil_char+ evil_char*evil_char + evil_word +evil_word*evil_word, (4, len(url_len))).transpose()#四个特征
+    feature = np.array(f0)
+    return feature
 
 
 if __name__=="__main__":
