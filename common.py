@@ -43,44 +43,54 @@ def get_train_datas(vectorizer):
     data = bdata+gdata
 
     datas = get_feature1(data,vectorizer)
-    print(datas.shape)
+    # print(datas.shape)
 
     train_data, test_data,train_label, test_label= train_test_split(datas, labels, test_size=20, random_state=42)
     return train_data, test_data,train_label, test_label
 
-def get_batch(dataset,batch_n):
+def get_batch(dataset,labels,batch_n):
     arr = np.random.randint(0,len(dataset),size=(batch_n,))
+    # print(arr)
     batch = [dataset[i] for i in arr]
-    print(arr)
-    print(batch)
+    target = [labels[i] for i in arr]
+    # print(arr)
+    # print(batch)
+    # print(target,'+++')
+    return batch,target
 
 def ont_hot(batch):
 
-    alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~!@#$%^&*()_+=-{}|\][:\"\';?><,./ 1234567890'
+    alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~!@#$%^&*()_+=-{}|\][:\"\';?><,./ 1234567890\n'
     # define a mapping of chars to integers
-    print(len(alphabet))
+    # print(len(alphabet))
     char_to_int = dict((c, i) for i, c in enumerate(alphabet))
-    print(char_to_int)
+    # print(char_to_int)
     int_to_char = dict((i, c) for i, c in enumerate(alphabet))
     # integer encode input data
     batch_encoded = []
     for data in batch:
-        integer_encoded = [char_to_int[char] for char in data]
+        integer_encoded = []
+        for char in data:
+            if char in char_to_int:
+                integer_encoded.append(char_to_int[char])
+            else:
+                integer_encoded.append(96)
+
         batch_encoded.append(integer_encoded)
-    print(batch)
+    # print(batch)
     # one hot encode
 
     batch_one_hot = []
     for integer_encoded in batch_encoded:
-        temp = np.zeros((200, 95))
+        temp = np.zeros((200, 97))
         for i in range(200):
             # letter = [0 for _ in range(len(alphabet))]
             if i<len(integer_encoded):
                temp[i][integer_encoded[i]] = 1
             # onehot_encoded.append(letter)
-        batch_one_hot.append(temp)
+        batch_one_hot.append([temp])
     one_hot = torch.Tensor(batch_one_hot)
-    print(one_hot,one_hot.shape)
+    # print(one_hot,one_hot.shape)
     # invert encoding
     # inverted = int_to_char[argmax(onehot_encoded[0])]
 
