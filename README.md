@@ -6,9 +6,9 @@ We have done the Logistic Regression and Support Vector Machines(SVM) part. The 
 
 We extract the URL feature by TF-IDF（Term Frequency-InversDocument Frequency）which also was mentioned by [exp-db](https://github.com/exp-db/AI-Driven-WAF) and count some special key words such as "<\script>, name"
 
-In the next Step, we will explore the CNN approach to deal with this case.
+we have explored the CNN approach to deal with this case.
 
 
 
 
-There are some sample codes for other Blogs or tutorials  I will cite them as soon as possible, if I find the author.
+There are some sample codes for other Blogs or tutorials  I will cite them as soon as possible, if I find the authors.
